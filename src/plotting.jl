@@ -1,10 +1,12 @@
 module Plotting
-using Reexport
+#using Reexport
 
 import JuLIP, NBodyIPFitting
 using Plots, NBodyIPs, StaticArrays
 
-gr(size=(800,500), html_output_format=:png)
+export IP_plot
+
+#gr(size=(800,500), html_output_format=:png)
 
 function unfold(A)
     V = []
