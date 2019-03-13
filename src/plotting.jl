@@ -1,9 +1,9 @@
 module Plotting
 
-using Reexport
+#using Reexport
 
 import JuLIP, NBodyIPFitting
-using Plots, NBodyIPs, StaticArrays
+using Printf, Plots, NBodyIPs, StaticArrays
 
 export IP_plot
 
