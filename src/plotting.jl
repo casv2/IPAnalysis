@@ -48,7 +48,7 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
 
     # plot 3/4 BA/BL
 
-    for i in deleteat!(IPs, findin(IPs, [2]))
+    for i in deleteat!(IPs, findall((in)([2]), IPs))
         if i == 3
             try
                 V3(r1,r2,r3) = IP.components[j]( SVector(r1,r2,r3) )
