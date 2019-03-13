@@ -1,4 +1,5 @@
 module Plotting
+
 using Reexport
 
 import JuLIP, NBodyIPFitting
@@ -8,17 +9,17 @@ export IP_plot
 
 gr(size=(800,500), html_output_format=:png)
 
-function unfold(A)
-    V = []
-    for x in A
-        if x === A
-            push!(V, x)
-        else
-            append!(V, unfold(x))
-        end
-    end
-    V
-end
+# function unfold(A)
+#     V = []
+#     for x in A
+#         if x === A
+#             push!(V, x)
+#         else
+#             append!(V, unfold(x))
+#         end
+#     end
+#     V
+# end
 
 function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, return_plot = true, N = "IP")
     # collect the IPs
@@ -83,6 +84,8 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
         display(p)
     end
 end
+
+end # module
 
 # function force_plot(IP::NBodyIPs.NBodyIP, test_data::Array{NBodyIPFitting.Dat,1}; s = 10, return_plot = true)
 #     data = sortcols(hcat([[split(test_data[i].configtype, ":")[1], test_data[i].D["F"], unfold(forces(IP, JuLIP.Atoms(test_data[i])))] for i in  1:s:length(test_data)]...))
@@ -255,7 +258,3 @@ end
 #    \\subfloat{{\\includegraphics[height=8cm]{IP_plot.png} }}%
 #    \\caption{Slices of \$V_{n}\$}%
 #\\end{figure}
-
-
-
-end # module
