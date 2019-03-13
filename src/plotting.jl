@@ -2,10 +2,10 @@ module Plotting
 
 #using Reexport
 
-import JuLIP, NBodyIPFitting
-using Printf, Plots, NBodyIPs, StaticArrays
+#import JuLIP, NBodyIPFitting
+using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, NBodyIPFitting
 
-export IP_plot
+#export IP_plot
 
 gr(size=(800,500), html_output_format=:png)
 
