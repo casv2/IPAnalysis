@@ -25,7 +25,7 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
     # collect the IPs
     IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
 
-    rr = range(xlim[1], xlim[2], 200)
+    rr = range(xlim[1], xlim[2], length=200)
     θ0 = acos(-1/3)
 
     p = plot( yaxis=([ylim[1],ylim[2]]) )
