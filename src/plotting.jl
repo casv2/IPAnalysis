@@ -34,7 +34,7 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
 
     # plot V2a + V2b or V2
 
-    if length(find(IPs .== 2)) > 1
+    if length(findall(IPs .== 2)) > 1
         V2a(r) = IP.components[j](r)
         j += 1
         V2b(r) = IP.components[j](r)
