@@ -4,6 +4,7 @@ module Plotting
 
 #import JuLIP, NBodyIPFitting
 using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, NBodyIPFitting
+using LinearAlgebra
 
 #export IP_plot
 
@@ -21,7 +22,7 @@ gr(size=(800,500), html_output_format=:png)
 #     V
 # end
 
-function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, return_plot = true, N = "IP")
+function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "")
     # collect the IPs
     IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
 
@@ -35,10 +36,11 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
     # plot V2a + V2b or V2
 
     if length(findall(IPs .== 2)) > 1
-        V2a(r) = IP.components[j](r)
+        # V2a(r) = IP.components[j](r)
         j += 1
-        V2b(r) = IP.components[j](r)
-        plot!(p, rr, V2b.(rr) + V2a.(rr), label="V2a + V2b")
+        # V2b(r) = IP.components[j](r)
+        # plot!(p, rr, V2b.(rr) + V2a.(rr), label="V2a + V2b")
+        plot!(p, rr, IP.components[2].(rr)+IP.components[3].(rr),  label="V2a + V2b")
     else
         V2(r) = IP.components[j](r)
         plot!(p, rr, V2.(rr), label="V2")
@@ -77,11 +79,13 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [0,8], r0 = 0, 
 
     xlabel!("Interatomic distance (Angstrom)")
     ylabel!("Energy (eV)")
+    title!(title)
 
-    if return_plot == false
-        savefig(@sprintf("%s_plot.png", N))
-    else
-        display(p)
+    if save_plot
+        savefig(@sprintf("%s_plot.png", title))
+    end
+    if return_plot
+        return p
     end
 end
 
