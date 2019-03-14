@@ -22,7 +22,7 @@ gr(size=(800,500), html_output_format=:png)
 #     V
 # end
 
-function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "")
+function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "", filename = "plot.png")
     # collect the IPs
     IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
 
@@ -82,7 +82,7 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0
     title!(title)
 
     if save_plot
-        savefig(@sprintf("%s_plot.png", title))
+        savefig(filename)
     end
     if return_plot
         return p
