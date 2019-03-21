@@ -89,15 +89,15 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0
     end
 end
 
-function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
-    IP_plot(IP, return_plot = false, N=name)
+function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
+    IP_plot(IP, save_plot = true, filename=filename)
     #error table
     error_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
     error_table *= "Config type & E (eV) & F (eV/A) & V (eV/A2) \\\\ \\midrule \n"
 
     types = sort(collect(keys(info["errors"]["rmse"])))
 
-    for key in deleteat!(types, findin(types, ["set"]))
+    for key in deleteat!(types, findall((in)(types, ["set"])))
         E = try string(info["errors"]["rmse"][key]["E"])[1:7] catch; "NaN" end
         F = try string(info["errors"]["rmse"][key]["F"])[1:7] catch; "NaN" end
         V = try string(info["errors"]["rmse"][key]["V"])[1:7] catch; "NaN" end
@@ -117,7 +117,7 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
     data_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
     s = @sprintf "Data & %s & %s & %s \\\\ \\midrule \n" "E" "F" "V"
     data_table *= s
-    s = @sprintf "Weight & %s & %s & %s \\\\ \\midrule \n" info["dataweights"]["E"] info["dataweights"]["F"] info["dataweights"]["V"]
+    s = @sprintf "Weight & %s & %s & %s \\\\ \\midrule \n" info["obsweights"]["E"] info["obsweights"]["F"] info["obsweights"]["V"]
     data_table *= s
     data_table *= "\\end{supertabular}"
 
@@ -133,14 +133,15 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
 
     db = replace(info["dbpath"][3:end], "_" => "\\_")
 
-    lname = replace(name, "_" => "\\_")
-    pname = @sprintf("%s_plot.png", name)
+    lname = replace(filename, "_" => "\\_")
+    pname = @sprintf("%s_plot.png", filename)
 
     e0 = info["E0"]
 
     basis = string(length(info["Ibasis"]))
 
-    template = "\\documentclass[a4paper,landscape]{article}
+    template =
+    "\\documentclass[a4paper,landscape]{article}
     \\usepackage{booktabs}
     \\usepackage[a4paper,margin=1in,landscape,twocolumn]{geometry}
     \\usepackage{amsmath}
@@ -174,13 +175,14 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
 
     write("out.tex", template)
 
-    filename = name * "_IPanalysis.pdf"
+    filename2 = filename * "_IPanalysis.pdf"
 
     run(`pdflatex out.tex`)
-    run(`mv out.pdf $filename`)
+    run(`mv out.pdf $filename2`)
     sleep(1)
     run(`rm out.tex out.log out.aux`)
 end
+
 
 end # module
 
