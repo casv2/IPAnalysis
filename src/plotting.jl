@@ -22,6 +22,9 @@ gr(size=(800,500), html_output_format=:png)
 #     V
 # end
 
+using NBodyIPs
+using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, IPFitting
+
 function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "", filename = "plot.png")
     # collect the IPs
     IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
@@ -134,14 +137,19 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     db = replace(info["dbpath"][3:end], "_" => "\\_")
 
     lname = replace(filename, "_" => "\\_")
-    pname = @sprintf("%s_plot.png", filename)
+    pname = @sprintf("%s.png", filename)
 
     e0 = info["E0"]
 
+    if e0 == nothing
+        e0 = "2B"
+    end
+
     basis = string(length(info["Ibasis"]))
 
-    template =
-    "\\documentclass[a4paper,landscape]{article}
+    @show lname, db, e0, basis, data_table, weight_table, error_table, pname
+
+    template = "\\documentclass[a4paper,landscape]{article}
     \\usepackage{booktabs}
     \\usepackage[a4paper,margin=1in,landscape,twocolumn]{geometry}
     \\usepackage{amsmath}
@@ -182,6 +190,26 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     sleep(1)
     run(`rm out.tex out.log out.aux`)
 end
+
+IP, info = load_ip("./cvdo_IPreg.json")
+
+#cd("example_run_dir/W/models/PIP_IPreg/")
+
+IP_plot(IP, save_plot = true, filename="cvdo_IPreg")
+
+IP_pdf(IP, info, "cvdo_IPReg")
+
+readdir()
+
+#IP.components
+
+
+e0 = "bla"
+
+temp = "\\hahaha $e0"
+
+write("test.txt", temp)
+
 
 
 end # module
