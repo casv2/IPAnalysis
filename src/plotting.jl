@@ -89,6 +89,99 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0
     end
 end
 
+function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
+    IP_plot(IP, return_plot = false, N=name)
+    #error table
+    error_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
+    error_table *= "Config type & E (eV) & F (eV/A) & V (eV/A2) \\\\ \\midrule \n"
+
+    types = sort(collect(keys(info["errors"]["rmse"])))
+
+    for key in deleteat!(types, findin(types, ["set"]))
+        E = try string(info["errors"]["rmse"][key]["E"])[1:7] catch; "NaN" end
+        F = try string(info["errors"]["rmse"][key]["F"])[1:7] catch; "NaN" end
+        V = try string(info["errors"]["rmse"][key]["V"])[1:7] catch; "NaN" end
+        s = @sprintf "%s & %s & %s & %s \\\\ \n" replace(key, "_" => "\\_") E F V
+        error_table *= s
+    end
+
+    E = try string(info["errors"]["rmse"]["set"]["E"])[1:7] catch; "NaN" end
+    F = try string(info["errors"]["rmse"]["set"]["F"])[1:7] catch; "NaN" end
+    V = try string(info["errors"]["rmse"]["set"]["V"])[1:7] catch; "NaN" end
+    s = @sprintf "%s & %s & %s & %s \\\\ \n" "set" E F V
+    error_table *= s
+
+    error_table *= "\\end{supertabular}"
+
+    #dataweights
+    data_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
+    s = @sprintf "Data & %s & %s & %s \\\\ \\midrule \n" "E" "F" "V"
+    data_table *= s
+    s = @sprintf "Weight & %s & %s & %s \\\\ \\midrule \n" info["dataweights"]["E"] info["dataweights"]["F"] info["dataweights"]["V"]
+    data_table *= s
+    data_table *= "\\end{supertabular}"
+
+    #weighttable
+    weight_table = "\\begin{supertabular}{ l c } \\toprule \n"
+    weight_table *= "Config type & Weight \\\\ \\midrule \n"
+
+    for key in sort(collect(keys(info["configweights"])))
+        s = @sprintf "%s & %s \\\\ \n" replace(key, "_" => "\\_") info["configweights"][key]
+        weight_table *= s
+    end
+    weight_table *= "\\end{supertabular}"
+
+    db = replace(info["dbpath"][3:end], "_" => "\\_")
+
+    lname = replace(name, "_" => "\\_")
+    pname = @sprintf("%s_plot.png", name)
+
+    e0 = info["E0"]
+
+    basis = string(length(info["Ibasis"]))
+
+    template = "\\documentclass[a4paper,landscape]{article}
+    \\usepackage{booktabs}
+    \\usepackage[a4paper,margin=1in,landscape,twocolumn]{geometry}
+    \\usepackage{amsmath}
+    \\usepackage{graphicx}
+    \\usepackage{subfig}
+    \\usepackage{diagbox}
+    \\usepackage{supertabular}
+    \\begin{document}
+    \\begin{center}
+    \\textbf{Name}: $lname \\\\
+    \\vspace{3mm}
+    \\textbf{LsqDB}: $db \\\\
+    \\vspace{2mm}
+    \\textbf{E0}: $e0 \\\\
+    \\vspace{2mm}
+    \\textbf{Basis functions}: $basis \\\\
+    \\vspace{3mm}
+    $data_table \\\\
+    \\vspace{3mm}
+    $weight_table \\\\
+    \\vspace{3mm}
+    $error_table \\\\
+    \\vspace{3mm}
+    \\begin{figure}[h]
+        \\centering
+        \\subfloat{{\\includegraphics[height=8cm]{$pname} }}%
+        \\caption{Slices of \$V_{n}\$}%
+    \\end{figure}
+    \\end{center}
+    \\end{document}"
+
+    write("out.tex", template)
+
+    filename = name * "_IPanalysis.pdf"
+
+    run(`pdflatex out.tex`)
+    run(`mv out.pdf $filename`)
+    sleep(1)
+    run(`rm out.tex out.log out.aux`)
+end
+
 end # module
 
 # function force_plot(IP::NBodyIPs.NBodyIP, test_data::Array{NBodyIPFitting.Dat,1}; s = 10, return_plot = true)
@@ -162,99 +255,6 @@ end # module
 #         display(P)
 #     end
 #
-# end
-
-# function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, name)
-#     IP_plot(IP, return_plot = false, N=name)
-#     #error table
-#     error_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
-#     error_table *= "Config type & E (eV) & F (eV/A) & V (eV/A2) \\\\ \\midrule \n"
-#
-#     types = sort(collect(keys(info["errors"]["rmse"])))
-#
-#     for key in deleteat!(types, findin(types, ["set"]))
-#         E = try string(info["errors"]["rmse"][key]["E"])[1:7] catch "NaN" end
-#         F = try string(info["errors"]["rmse"][key]["F"])[1:7] catch "NaN" end
-#         V = try string(info["errors"]["rmse"][key]["V"])[1:7] catch "NaN" end
-#         s = @sprintf "%s & %s & %s & %s \\\\ \n" replace(key, "_" => "\\_") E F V
-#         error_table *= s
-#     end
-#
-#     E = try string(info["errors"]["rmse"]["set"]["E"])[1:7] catch "NaN" end
-#     F = try string(info["errors"]["rmse"]["set"]["F"])[1:7] catch "NaN" end
-#     V = try string(info["errors"]["rmse"]["set"]["V"])[1:7] catch "NaN" end
-#     s = @sprintf "%s & %s & %s & %s \\\\ \n" "set" E F V
-#     error_table *= s
-#
-#     error_table *= "\\end{supertabular}"
-#
-#     #dataweights
-#     data_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
-#     s = @sprintf "Data & %s & %s & %s \\\\ \\midrule \n" "E" "F" "V"
-#     data_table *= s
-#     s = @sprintf "Weight & %s & %s & %s \\\\ \\midrule \n" info["dataweights"]["E"] info["dataweights"]["F"] info["dataweights"]["V"]
-#     data_table *= s
-#     data_table *= "\\end{supertabular}"
-#
-#     #weighttable
-#     weight_table = "\\begin{supertabular}{ l c } \\toprule \n"
-#     weight_table *= "Config type & Weight \\\\ \\midrule \n"
-#
-#     for key in sort(collect(keys(info["configweights"])))
-#         s = @sprintf "%s & %s \\\\ \n" replace(key, "_" => "\\_") info["configweights"][key]
-#         weight_table *= s
-#     end
-#     weight_table *= "\\end{supertabular}"
-#
-#     db = replace(info["dbpath"][3:end], "_" => "\\_")
-#
-#     lname = replace(name, "_" => "\\_")
-#     pname = @sprintf("%s_plot.png", name)
-#
-#     e0 = info["E0"]
-#
-#     basis = string(length(info["Ibasis"]))
-#
-#     template = "\\documentclass[a4paper,landscape]{article}
-#     \\usepackage{booktabs}
-#     \\usepackage[a4paper,margin=1in,landscape,twocolumn]{geometry}
-#     \\usepackage{amsmath}
-#     \\usepackage{graphicx}
-#     \\usepackage{subfig}
-#     \\usepackage{diagbox}
-#     \\usepackage{supertabular}
-#     \\begin{document}
-#     \\begin{center}
-#     \\textbf{Name}: $lname \\\\
-#     \\vspace{3mm}
-#     \\textbf{LsqDB}: $db \\\\
-#     \\vspace{2mm}
-#     \\textbf{E0}: $e0 \\\\
-#     \\vspace{2mm}
-#     \\textbf{Basis functions}: $basis \\\\
-#     \\vspace{3mm}
-#     $data_table \\\\
-#     \\vspace{3mm}
-#     $weight_table \\\\
-#     \\vspace{3mm}
-#     $error_table \\\\
-#     \\vspace{3mm}
-#     \\begin{figure}[h]
-#         \\centering
-#         \\subfloat{{\\includegraphics[height=8cm]{$pname} }}%
-#         \\caption{Slices of \$V_{n}\$}%
-#     \\end{figure}
-#     \\end{center}
-#     \\end{document}"
-#
-#     write("out.tex", template)
-#
-#     filename = name * "_IPanalysis.pdf"
-#
-#     run(`pdflatex out.tex`)
-#     run(`mv out.pdf $filename`)
-#     sleep(1)
-#     run(`rm out.tex out.log out.aux`)
 # end
 
 #\\begin{figure}[h]
