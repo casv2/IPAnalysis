@@ -191,27 +191,6 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     run(`rm out.tex out.log out.aux`)
 end
 
-IP, info = load_ip("./cvdo_IPreg.json")
-
-#cd("example_run_dir/W/models/PIP_IPreg/")
-
-IP_plot(IP, save_plot = true, filename="cvdo_IPreg")
-
-IP_pdf(IP, info, "cvdo_IPReg")
-
-readdir()
-
-#IP.components
-
-
-e0 = "bla"
-
-temp = "\\hahaha $e0"
-
-write("test.txt", temp)
-
-
-
 end # module
 
 # function force_plot(IP::NBodyIPs.NBodyIP, test_data::Array{NBodyIPFitting.Dat,1}; s = 10, return_plot = true)
