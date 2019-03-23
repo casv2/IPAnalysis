@@ -93,7 +93,7 @@ function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0
 end
 
 function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
-    IP_plot(IP, save_plot = true, filename=filename)
+    #IP_plot(IP, save_plot = true, filename=filename)
     #error table
     error_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
     error_table *= "Config type & E (eV) & F (eV/A) & V (eV/A2) \\\\ \\midrule \n"
@@ -137,7 +137,7 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     db = replace(info["dbpath"][3:end], "_" => "\\_")
 
     lname = replace(filename, "_" => "\\_")
-    pname = @sprintf("%s.png", filename)
+    #pname = @sprintf("%s.png", filename)
 
     e0 = info["E0"]
 
