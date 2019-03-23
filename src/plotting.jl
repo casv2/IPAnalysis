@@ -172,12 +172,6 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     $weight_table \\\\
     \\vspace{3mm}
     $error_table \\\\
-    \\vspace{3mm}
-    \\begin{figure}[h]
-        \\centering
-        \\subfloat{{\\includegraphics[height=8cm]{$pname} }}%
-        \\caption{Slices of \$V_{n}\$}%
-    \\end{figure}
     \\end{center}
     \\end{document}"
 
@@ -192,6 +186,14 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
 end
 
 end # module
+
+
+# \\vspace{3mm}
+# \\begin{figure}[h]
+#     \\centering
+#     \\subfloat{{\\includegraphics[height=8cm]{$pname} }}%
+#     \\caption{Slices of \$V_{n}\$}%
+# \\end{figure}
 
 # function force_plot(IP::NBodyIPs.NBodyIP, test_data::Array{NBodyIPFitting.Dat,1}; s = 10, return_plot = true)
 #     data = sortcols(hcat([[split(test_data[i].configtype, ":")[1], test_data[i].D["F"], unfold(forces(IP, JuLIP.Atoms(test_data[i])))] for i in  1:s:length(test_data)]...))
