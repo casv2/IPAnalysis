@@ -179,13 +179,14 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     \\vspace{3mm}
     $data_table \\\\
     \\vspace{3mm}
-    $weight_table \\\\
+    $reg_table \\\\
     \\vspace{3mm}
     $error_table \\\\
-    \\vspace{3mm}
-    $reg_table \\\\
     \\end{center}
     \\end{document}"
+
+    #\\vspace{3mm}
+    #$weight_table \\\\
 
     write("out.tex", template)
 
