@@ -134,6 +134,16 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     end
     weight_table *= "\\end{supertabular}"
 
+    reg_table = "\\begin{supertabular}{ l c c c} \\toprule \n"
+    reg_table *= "Type & min & r0 & r1 \\\\ \\midrule \n"
+
+    for i in length(info["regularisers"])
+        s = @sprintf "%s & %s & %s & %s \\\\ \n" info["regularisers"][i]["type"] info["regularisers"][i]["r0"] info["regularisers"][i]["r1"] info["regularisers"][i]["creg"]
+        reg_table *= s
+    end
+
+    reg_table *= "\\end{supertabular}"
+
     db = replace(info["dbpath"][3:end], "_" => "\\_")
 
     lname = replace(filename, "_" => "\\_")
@@ -147,7 +157,7 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
 
     basis = string(length(info["Ibasis"]))
 
-    @show lname, db, e0, basis, data_table, weight_table, error_table #, pname
+    @show lname, db, e0, basis, data_table, weight_table, error_table, reg_table #, pname
 
     template = "\\documentclass[a4paper,landscape]{article}
     \\usepackage{booktabs}
@@ -172,6 +182,8 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     $weight_table \\\\
     \\vspace{3mm}
     $error_table \\\\
+    \\vspace{3mm}
+    $reg_table \\\\
     \\end{center}
     \\end{document}"
 
