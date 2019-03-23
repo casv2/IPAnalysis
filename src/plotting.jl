@@ -135,9 +135,9 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     weight_table *= "\\end{supertabular}"
 
     reg_table = "\\begin{supertabular}{ l c c c} \\toprule \n"
-    reg_table *= "Type & min & r0 & r1 \\\\ \\midrule \n"
+    reg_table *= "Type & r0 & r1 & creg \\\\ \\midrule \n"
 
-    for i in length(info["regularisers"])
+    for i in 1:length(info["regularisers"])
         s = @sprintf "%s & %s & %s & %s \\\\ \n" info["regularisers"][i]["type"] info["regularisers"][i]["r0"] info["regularisers"][i]["r1"] info["regularisers"][i]["creg"]
         reg_table *= s
     end
