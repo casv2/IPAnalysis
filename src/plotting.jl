@@ -147,7 +147,7 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
 
     basis = string(length(info["Ibasis"]))
 
-    @show lname, db, e0, basis, data_table, weight_table, error_table, pname
+    @show lname, db, e0, basis, data_table, weight_table, error_table #, pname
 
     template = "\\documentclass[a4paper,landscape]{article}
     \\usepackage{booktabs}
