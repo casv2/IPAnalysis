@@ -6,91 +6,220 @@ module Plotting
 using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, IPFitting
 using LinearAlgebra
 
-#export IP_plot
+export IP_plot, IP_pdf, Evsθ
 
-gr(size=(800,500), html_output_format=:png)
+function find_bodyorders(IP)
+    bodyorders = Dict()
 
-# function unfold(A)
-#     V = []
-#     for x in A
-#         if x === A
-#             push!(V, x)
-#         else
-#             append!(V, unfold(x))
-#         end
-#     end
-#     V
-# end
-
-using NBodyIPs
-using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, IPFitting
-
-function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "", filename = "plot.png")
-    # collect the IPs
-    IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
-
-    rr = range(xlim[1], xlim[2], length=200)
-    θ0 = acos(-1/3)
-
-    p = plot( yaxis=([ylim[1],ylim[2]]) )
-
-    j = 2
-
-    # plot V2a + V2b or V2
-
-    if length(findall(IPs .== 2)) > 1
-        # V2a(r) = IP.components[j](r)
-        j += 1
-        # V2b(r) = IP.components[j](r)
-        # plot!(p, rr, V2b.(rr) + V2a.(rr), label="V2a + V2b")
-        plot!(p, rr, IP.components[2].(rr)+IP.components[3].(rr),  label="V2a + V2b")
-    else
-        V2(r) = IP.components[j](r)
-        plot!(p, rr, V2.(rr), label="V2")
+    for (index,component) in enumerate(IP.components)
+        try
+            E0 = Dict(component)["E0"]
+        catch
+            try
+                bodyorders[index] = Dict(component)["N"]
+            catch
+                try
+                    bodyorders[index] = Dict(component)["Vout"]["N"]
+                catch
+                    bodyorders[index] = Dict(component)["Vr"]["N"]
+                end
+            end
+        end
     end
 
-    j += 1
+    return bodyorders
+end
 
-    # plot 3/4 BA/BL
+function Evsθ(IP, r0)
+    θr = range(-1, 1, length=200)
 
-    for i in deleteat!(IPs, findall((in)([2]), IPs))
-        if i == 3
+    bodyorders = find_bodyorders(IP)
+
+    indices_3b = [k for (k,v) in bodyorders if v==3]
+
+    p = plot()
+
+    for index in indices_3b
+        if Dict(IP.components[index])["D"]["__id__"] == "BondAngleDesc"
+            #if haskey(Dict(IP.components[index]), "Vr")
             try
-                V3(r1,r2,r3) = IP.components[j]( SVector(r1,r2,r3) )
+                V3(r1,r2,θ) = IP.components[index].Vr( (SVector(r1, r2), SVector(cos(θ)) ) )
+                plot!(p, θr, V3.(r0, r0, θr), label = "V3 (BA) (env)")
+            catch
+                V3(r1,r2,θ) = IP.components[index]( (SVector(r1, r2), SVector(cos(θ)) ) )
+                plot!(p, θr, V3.(r0, r0, θr), label = "V3 (BA)")
+            end
+        else
+            println("No BA plot")
+        end
+    end
+
+    xlabel!("Theta (in rads)")
+    ylabel!("Energy (eV)")
+    display(p)
+end
+
+function IP_plot(IP, r0; ylims = [-0.1,0.1], xlims = [1.5,8], θ0=0.3)
+
+    if θ0 < -1 || θ0 > 1
+        println("choose θ0 in [-1, 1]")
+    end
+
+    bodyorders = find_bodyorders(IP)
+
+    p = plot( yaxis=([ylims[1],ylims[2]]) )
+    rr = range(xlims[1], xlims[2], length=200)
+
+    indices_2b = [k for (k,v) in bodyorders if v==2]
+
+    if length(indices_2b) == 1
+        V2(r) = IP.components[indices_2b[1]](r)
+        plot!(p, rr, V2.(rr), label="V2")
+    elseif length(indices_2b) == 2
+        V2a(r) = IP.components[indices_2b[1]](r)
+        V2b(r) = IP.components[indices_2b[2]](r)
+        plot!(p, rr, V2b.(rr) + V2a.(rr), label="V2a + V2b")
+    end
+
+    indices_3b = [k for (k,v) in bodyorders if v==3]
+
+    for index in indices_3b
+        if haskey(Dict(IP.components[index]), "Vr")
+            try
+                V3(r1,r2,r3) = IP.components[index].Vr( SVector(r1,r2,r3) )
+                plot!(p, rr, V3.(rr,rr,rr), label="V3 (BL) (env)")
+            catch
+                V3(r1,r2,θ) = IP.components[index].Vr( (SVector(r1, r2), SVector(cos(θ)) ) )
+                plot!(p, rr, V3.(rr, rr, θ0), label = "V3 (BA) (env)")
+            end
+        else
+            try
+                V3(r1,r2,r3) = IP.components[index]( SVector(r1,r2,r3) )
                 plot!(p, rr, V3.(rr,rr,rr), label="V3 (BL)")
             catch
-                V3(r1,r2,θ) = IP.components[j]( (SVector(r1, r2), SVector(cos(θ)*r1*r2) ) )
+                V3(r1,r2,θ) = IP.components[index]( (SVector(r1, r2), SVector(cos(θ)) ) )
                 plot!(p, rr, V3.(rr, rr, θ0), label = "V3 (BA)")
             end
-        elseif i == 4
+        end
+    end
+
+    indices_4b = [k for (k,v) in bodyorders if v==4]
+
+    for index in indices_4b
+        if haskey(Dict(IP.components[index]), "Vr")
             try
-                V4(r1,r2,r3,r4,r5,r6) = IP.components[j]( SVector(r1,r2,r3,r4,r5,r6) )
+                V4(r1,r2,r3,r4,r5,r6) = IP.components[index].Vr( SVector(r1,r2,r3,r4,r5,r6) )
+                plot!(p, rr, V4.(rr,rr,rr,rr,rr,rr), label="V4 (BL) (env)")
+            catch
+                V4(r1,r2,r3, θ1, θ2, θ3) = IP.components[index].Vr( (SVector(r1, r2, r3), SVector(θ1, θ2, θ3)) )
+                plot!(p, rr, V4.(rr, rr, rr, θ0, θ0, θ0), label="V4 (BA) (env)")
+            end
+        else
+            try
+                V4(r1,r2,r3,r4,r5,r6) = IP.components[index]( SVector(r1,r2,r3,r4,r5,r6) )
                 plot!(p, rr, V4.(rr,rr,rr,rr,rr,rr), label="V4 (BL)")
             catch
-                V4(r1,r2,r3, θ1, θ2, θ3) = IP.components[j]( (SVector(r1, r2, r3), SVector(θ1, θ2, θ3)) )
+                V4(r1,r2,r3, θ1, θ2, θ3) = IP.components[index]( (SVector(r1, r2, r3), SVector(θ1, θ2, θ3)) )
                 plot!(p, rr, V4.(rr, rr, rr, θ0, θ0, θ0), label="V4 (BA)")
             end
         end
-        j += 1
     end
 
-    # add r0
-
-    if typeof(r0) == Float64
-        vline!([r0], label="r0", color="black")
-    end
-
-    xlabel!("Interatomic distance (Angstrom)")
+    vline!([r0], label="r0", color="black")
+    xlabel!("Interatomic Distance (Angstrom)")
     ylabel!("Energy (eV)")
-    title!(title)
+    display(p)
 
-    if save_plot
-        savefig(filename)
-    end
-    if return_plot
-        return p
-    end
 end
+
+
+#export IP_plot
+
+
+
+# gr(size=(800,500), html_output_format=:png)
+#
+# # function unfold(A)
+# #     V = []
+# #     for x in A
+# #         if x === A
+# #             push!(V, x)
+# #         else
+# #             append!(V, unfold(x))
+# #         end
+# #     end
+# #     V
+# # end
+#
+# using NBodyIPs
+# using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, IPFitting
+#
+# function IP_plot(IP::NBodyIPs.NBodyIP; ylim = [-0.8,0.8], xlim = [1.5,8], r0 = 0, return_plot = true, save_plot = false, N = "IP", title = "", filename = "plot.png", θ0 = 0.3)
+#     # collect the IPs
+#     IPs = NBodyIPs.bodyorder.(IP.components)[2:end]
+#
+#     rr = range(xlim[1], xlim[2], length=200)
+#     #θ0 = 0.3#acos(-1/3)
+#
+#     p = plot( yaxis=([ylim[1],ylim[2]]) )
+#
+#     j = 2
+#
+#     # plot V2a + V2b or V2
+#
+#     if length(findall(IPs .== 2)) > 1
+#         # V2a(r) = IP.components[j](r)
+#         j += 1
+#         # V2b(r) = IP.components[j](r)
+#         # plot!(p, rr, V2b.(rr) + V2a.(rr), label="V2a + V2b")
+#         plot!(p, rr, IP.components[2].(rr)+IP.components[3].(rr),  label="V2a + V2b")
+#     else
+#         V2(r) = IP.components[j](r)
+#         plot!(p, rr, V2.(rr), label="V2")
+#     end
+#
+#     j += 1
+#
+#     # plot 3/4 BA/BL
+#
+#     for i in deleteat!(IPs, findall((in)([2]), IPs))
+#         if i == 3
+#             try
+#                 V3(r1,r2,r3) = IP.components[j]( SVector(r1,r2,r3) )
+#                 plot!(p, rr, V3.(rr,rr,rr), label="V3 (BL)")
+#             catch
+#                 V3(r1,r2,θ) = IP.components[j]( (SVector(r1, r2), SVector(cos(θ)*r1*r2) ) )
+#                 plot!(p, rr, V3.(rr, rr, θ0), label = "V3 (BA)")
+#             end
+#         elseif i == 4
+#             try
+#                 V4(r1,r2,r3,r4,r5,r6) = IP.components[j]( SVector(r1,r2,r3,r4,r5,r6) )
+#                 plot!(p, rr, V4.(rr,rr,rr,rr,rr,rr), label="V4 (BL)")
+#             catch
+#                 V4(r1,r2,r3, θ1, θ2, θ3) = IP.components[j]( (SVector(r1, r2, r3), SVector(θ1, θ2, θ3)) )
+#                 plot!(p, rr, V4.(rr, rr, rr, θ0, θ0, θ0), label="V4 (BA)")
+#             end
+#         end
+#         j += 1
+#     end
+#
+#     # add r0
+#
+#     if typeof(r0) == Float64
+#         vline!([r0], label="r0", color="black")
+#     end
+#
+#     xlabel!("Interatomic distance (Angstrom)")
+#     ylabel!("Energy (eV)")
+#     title!(title)
+#
+#     if save_plot
+#         savefig(filename)
+#     end
+#     if return_plot
+#         return p
+#     end
+# end
 
 function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     #IP_plot(IP, save_plot = true, filename=filename)
