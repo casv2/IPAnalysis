@@ -3,7 +3,7 @@ module Plotting
 #using Reexport
 
 #import JuLIP, NBodyIPFitting
-using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, NBodyIPFitting
+using Printf, Plots, NBodyIPs, StaticArrays, JuLIP, IPFitting
 using LinearAlgebra
 
 #export IP_plot
