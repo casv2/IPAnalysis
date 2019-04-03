@@ -4,7 +4,7 @@ using JSON
 using Printf, Formatting
 export to_latex
 
-function to_latex(dict, filename; float_format = "%.3e", cols = [], rows = [], col_names = [])
+function to_latex(dict, filename; float_format = "%.3e", cols = [], rows = [], col_names = [], col_code = [])
     if cols == []
         keys_dict = collect(keys(dict))
         nb_col = length(keys(dict))
@@ -25,11 +25,15 @@ function to_latex(dict, filename; float_format = "%.3e", cols = [], rows = [], c
     #Table definition
     latex_table = "\\begin{tabular}{"*repeat("|l", nb_col)*"|} \\hline \n"
 
-    for (k,key) in enumerate(keys_dict[1:end-1])
-        latex_table *= "\\begin{tabular}{c}" * col_names[k] * "\\end{tabular} & "
+    if col_code == []
+        for (k,key) in enumerate(keys_dict[1:end-1])
+            latex_table *= "\\begin{tabular}{c}" * col_names[k] * "\\end{tabular} & "
+        end
+        latex_table *= "\\begin{tabular}{c}" * col_names[end] * "\\end{tabular} "
+        latex_table *= "\\\\ \\hline \n"
+    else
+        latex_table *= col_code
     end
-    latex_table *= "\\begin{tabular}{c}" * col_names[end] * "\\end{tabular} "
-    latex_table *= "\\\\ \\hline \n"
     # Write each of the lines
     for i in rows
         for (j,key) in enumerate(keys_dict)
@@ -56,6 +60,9 @@ function to_latex(dict, filename; float_format = "%.3e", cols = [], rows = [], c
     \\usepackage{subfig}
     \\usepackage{diagbox}
     \\usepackage{supertabular}
+    \\usepackage{multirow}
+    \\usepackage{makecell}
+    \\usepackage{hhline}
     \\begin{document}
     \\begin{center}
     \\vspace{3mm}
