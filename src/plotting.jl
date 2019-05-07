@@ -59,7 +59,7 @@ function Evsθ(IP, r0)
     display(p)
 end
 
-function IP_plot(IP, r0; ylims = [-0.1,0.1], xlims = [1.5,8], θ0=0.3)
+function IP_plot(IP, r0; ylims = [-0.1,0.1], xlims = [1.5,8], θ0=0.3, save_plot=false, filename)
 
     if θ0 < -1 || θ0 > 1
         println("choose θ0 in [-1, 1]")
@@ -128,7 +128,13 @@ function IP_plot(IP, r0; ylims = [-0.1,0.1], xlims = [1.5,8], θ0=0.3)
     vline!([r0], label="r0", color="black")
     xlabel!("Interatomic Distance (Angstrom)")
     ylabel!("Energy (eV)")
-    display(p)
+
+    if save_plot
+        savefig(filename * ".png")
+    else
+        display(p)
+    end
+    #display(p)
 
 end
 
@@ -221,8 +227,8 @@ end
 #     end
 # end
 
-function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
-    #IP_plot(IP, save_plot = true, filename=filename)
+function IP_pdf(IP, r0, info; save_plot, filename)
+    IP_plot(IP, r0, save_plot = true, filename=filename)
     #error table
     error_table = "\\begin{supertabular}{ l c c c } \\toprule \n"
     error_table *= "Config type & E (eV) & F (eV/A) & V (eV/A2) \\\\ \\midrule \n"
@@ -280,6 +286,8 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
 
     e0 = info["E0"]
 
+    solver = info["solver"]
+
     if e0 == nothing
         e0 = "2B"
     end
@@ -287,6 +295,8 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     basis = string(length(info["Ibasis"]))
 
     @show lname, db, e0, basis, data_table, weight_table, error_table, reg_table #, pname
+
+    pname = filename * ".png"
 
     template = "\\documentclass[a4paper,landscape]{article}
     \\usepackage{booktabs}
@@ -304,6 +314,8 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     \\vspace{2mm}
     \\textbf{E0}: $e0 \\\\
     \\vspace{2mm}
+    \\textbf{solver}: $solver \\\\
+    \\vspace{2mm}
     \\textbf{Basis functions}: $basis \\\\
     \\vspace{3mm}
     $data_table \\\\
@@ -313,6 +325,12 @@ function IP_pdf(IP::NBodyIPs.NBodyIP, info::Dict{String,Any}, filename)
     $error_table \\\\
     \\vspace{3mm}
     $weight_table \\\\
+    \\vspace{3mm}
+    \\begin{figure}[h]
+       \\centering
+       \\subfloat{{\\includegraphics[height=8cm]{$pname} }}%
+       \\caption{Slices of \$V_{n}\$}%
+    \\end{figure}
     \\end{center}
     \\end{document}"
 
