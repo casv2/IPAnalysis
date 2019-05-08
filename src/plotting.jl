@@ -59,7 +59,7 @@ function Evsθ(IP, r0)
     display(p)
 end
 
-function IP_plot(IP, r0; ylims = [-0.1,0.1], xlims = [1.5,8], θ0=0.3, save_plot=false, filename)
+function IP_plot(IP, r0; ylims = [-1.0,1.0], xlims = [1.5,8], θ0=0.3, save_plot=false, filename="")
 
     if θ0 < -1 || θ0 > 1
         println("choose θ0 in [-1, 1]")
