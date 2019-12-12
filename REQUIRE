@@ -1,2 +1,7 @@
 Reexport
 Plots
+StaticArrays
+LinearAlgebra
+Printf
+Plots
+JuLIP
