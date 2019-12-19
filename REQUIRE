@@ -1,7 +1,9 @@
 Reexport
 Plots
+PoSH
 StaticArrays
 LinearAlgebra
 Printf
 Plots
 JuLIP
+Weave

@@ -1,0 +1,18 @@
+---
+title : 2B_PoSH report
+---
+
+```{julia;echo=false}
+using PoSH, IPAnalysis, IPFitting
+
+Zs, info, IP_2B, IP_PoSH, IP = read_IP("TiAl_MD_bulk_liq_CASTEP_all_LD1_2reg_1.361_rep.json")
+
+
+timing(Zs, IP)
+
+weights(info)
+
+rmse_table(info["errors"])
+
+plot_2B(Zs, IP_2B)
+```
