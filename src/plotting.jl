@@ -1,6 +1,6 @@
 module Plotting
 
-using PoSH, JuLIP
+using SHIPs, JuLIP
 using Plots, Weave, Printf
 
 export read_IP, energy_2b, plot_2B, IP_pdf, timing, basis, weights
